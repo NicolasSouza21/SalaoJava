@@ -38,7 +38,7 @@ public class ProdutoController {
 
     // Método para buscar um produto pelo ID
     public Produto buscarProduto(int id) {
-        Produto produto = produtoService.buscarProdutoPorId(id);
+        Produto produto = produtoService.buscarProduto(id); // Corrigido para chamar o método existente
         if (produto != null) {
             System.out.println("Produto encontrado: " + produto);
         } else {
@@ -49,7 +49,7 @@ public class ProdutoController {
 
     // Método para editar um produto
     public boolean editarProduto(Produto produto) {
-        boolean sucesso = produtoService.atualizarProduto(produto);
+        boolean sucesso = produtoService.editarProduto(produto); // Corrigido para chamar o método correto
         if (sucesso) {
             System.out.println("Produto editado com sucesso: " + produto.getNome());
         } else {
@@ -60,7 +60,7 @@ public class ProdutoController {
 
     // Método para deletar um produto
     public boolean deletarProduto(int id) {
-        boolean sucesso = produtoService.removerProduto(id);
+        boolean sucesso = produtoService.deletarProduto(id); // Corrigido para chamar o método correto
         if (sucesso) {
             System.out.println("Produto deletado com sucesso: ID " + id);
         } else {
