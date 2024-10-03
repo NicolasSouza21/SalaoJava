@@ -13,14 +13,14 @@ public class ClienteController {
     }
 
     // Método para cadastrar um cliente
-    public boolean cadastrarCliente(Cliente cliente) {  // Alterado para retornar boolean
-        boolean sucesso = clienteService.cadastrarCliente(cliente); // Agora funciona corretamente
+    public boolean cadastrarCliente(Cliente cliente) {
+        boolean sucesso = clienteService.cadastrarCliente(cliente);
         if (sucesso) {
             System.out.println("Cliente cadastrado com sucesso: " + cliente.getNome());
         } else {
             System.out.println("Erro ao cadastrar cliente: operação falhou.");
         }
-        return sucesso; // Retorna o resultado do cadastro
+        return sucesso;
     }
 
     // Método para listar todos os clientes
@@ -45,5 +45,27 @@ public class ClienteController {
             System.out.println("Cliente não encontrado.");
         }
         return cliente;
+    }
+
+    // Método para editar um cliente
+    public boolean editarCliente(Cliente cliente) {
+        boolean sucesso = clienteService.editarCliente(cliente);
+        if (sucesso) {
+            System.out.println("Cliente editado com sucesso: " + cliente.getNome());
+        } else {
+            System.out.println("Erro ao editar cliente: operação falhou.");
+        }
+        return sucesso;
+    }
+
+    // Método para deletar um cliente
+    public boolean deletarCliente(int id) {
+        boolean sucesso = clienteService.deletarCliente(id);
+        if (sucesso) {
+            System.out.println("Cliente deletado com sucesso: ID " + id);
+        } else {
+            System.out.println("Erro ao deletar cliente: operação falhou.");
+        }
+        return sucesso;
     }
 }

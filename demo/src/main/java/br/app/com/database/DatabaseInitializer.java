@@ -55,7 +55,7 @@ public class DatabaseInitializer {
                 "contato VARCHAR(100)" +
                 ");";
 
-        String sqlCreateProduto = "CREATE TABLE IF NOT EXISTS produto (" +
+        String sqlCreateProduto = "CREATE TABLE IF NOT EXISTS produtos (" +
                 "id SERIAL PRIMARY KEY," +
                 "nome VARCHAR(100) NOT NULL," +
                 "quantidade INT NOT NULL," +

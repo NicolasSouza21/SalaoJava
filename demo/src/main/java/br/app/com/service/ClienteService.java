@@ -80,4 +80,48 @@ public class ClienteService {
 
         return cliente;
     }
+
+    // Método para editar um cliente existente
+    public boolean editarCliente(Cliente cliente) {
+        String sql = "UPDATE cliente SET nome = ?, telefone = ?, email = ?, endereco = ? WHERE id = ?";
+        boolean sucesso = false;
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, cliente.getNome());
+            statement.setString(2, cliente.getTelefone());
+            statement.setString(3, cliente.getEmail());
+            statement.setString(4, cliente.getEndereco());
+            statement.setInt(5, cliente.getId());
+            int rowsAffected = statement.executeUpdate();
+
+            sucesso = rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao editar cliente: " + e.getMessage());
+        }
+
+        return sucesso;
+    }
+
+    // Método para deletar um cliente
+    public boolean deletarCliente(int id) {
+        String sql = "DELETE FROM cliente WHERE id = ?";
+        boolean sucesso = false;
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, id);
+            int rowsAffected = statement.executeUpdate();
+
+            sucesso = rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao deletar cliente: " + e.getMessage());
+        }
+
+        return sucesso;
+    }
 }
