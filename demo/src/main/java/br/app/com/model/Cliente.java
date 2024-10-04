@@ -7,6 +7,18 @@ public class Cliente {
     private String email;
     private String endereco;
 
+    // Construtores
+    public Cliente() {
+    }
+
+    public Cliente(int id, String nome, String telefone, String email, String endereco) {
+        this.id = id;
+        this.nome = nome;
+        this.telefone = telefone;
+        this.email = email;
+        this.endereco = endereco;
+    }
+
     // Getters e Setters
     public int getId() {
         return id;
@@ -48,14 +60,15 @@ public class Cliente {
         this.endereco = endereco;
     }
 
+    // Método toString atualizado para uma saída mais legível
     @Override
     public String toString() {
-        return "Cliente{" +
-                "id=" + id +
-                ", nome='" + nome + '\'' +
-                ", telefone='" + telefone + '\'' +
-                ", email='" + email + '\'' +
-                ", endereco='" + endereco + '\'' +
+        return "Cliente {" +
+                "ID: " + id +
+                ", Nome: '" + nome + '\'' +
+                ", Telefone: '" + telefone + '\'' +
+                ", Email: '" + email + '\'' +
+                ", Endereço: '" + endereco + '\'' +
                 '}';
     }
 }

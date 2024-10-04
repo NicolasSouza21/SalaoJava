@@ -62,12 +62,13 @@ public class DatabaseInitializer {
                 "preco DECIMAL(10, 2) NOT NULL" +
                 ");";
 
-        String sqlCreateVenda = "CREATE TABLE IF NOT EXISTS venda (" +
-                "id SERIAL PRIMARY KEY," +
-                "data TIMESTAMP NOT NULL," +
-                "total DECIMAL(10, 2) NOT NULL," +
-                "forma_pagamento VARCHAR(50)" +
-                ");";
+        String sqlCreateVendas = "CREATE TABLE IF NOT EXISTS vendas (" +
+                            "id SERIAL PRIMARY KEY," +
+                            "data TIMESTAMP NOT NULL," +
+                            "total DECIMAL(10, 2) NOT NULL," +
+                            "forma_pagamento VARCHAR(50)," +
+                            "cliente_id INTEGER REFERENCES cliente(id) ON DELETE CASCADE" + // Alterado para "cliente"
+                            ");";
 
         String sqlCreateServico = "CREATE TABLE IF NOT EXISTS servico (" +
                 "id SERIAL PRIMARY KEY," +
@@ -89,7 +90,7 @@ public class DatabaseInitializer {
             statement.executeUpdate(sqlCreateCliente);
             statement.executeUpdate(sqlCreateFornecedor);
             statement.executeUpdate(sqlCreateProduto);
-            statement.executeUpdate(sqlCreateVenda);
+            statement.executeUpdate(sqlCreateVendas);
             statement.executeUpdate(sqlCreateServico);
             statement.executeUpdate(sqlCreateAtendimento);
 
