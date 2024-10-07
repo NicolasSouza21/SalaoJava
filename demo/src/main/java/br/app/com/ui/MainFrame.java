@@ -19,6 +19,7 @@ public class MainFrame extends JFrame {
         SupplierListPanel supplierListPanel = new SupplierListPanel();
         ProductListPanel productListPanel = new ProductListPanel(); // Painel de listagem de produtos
         CaixaPanel caixaPanel = new CaixaPanel(); // Adicionando o painel de caixa
+        VendasPanel vendasPanel = new VendasPanel(); // Adicionando o painel de vendas
 
         // Adicionar as guias para clientes e fornecedores
         tabbedPane.addTab("Cadastro de Clientes", new ClientRegistrationPanel(clientListPanel)); // Cadastro de clientes
@@ -32,6 +33,9 @@ public class MainFrame extends JFrame {
 
         // Adicionar a guia para o painel de caixa
         tabbedPane.addTab("Caixa", caixaPanel); // Adiciona a aba do caixa
+
+        // Adicionar a guia para o painel de vendas
+        tabbedPane.addTab("Vendas", vendasPanel); // Adiciona a aba de vendas
 
         // Adicionar o JTabbedPane ao frame
         add(tabbedPane, BorderLayout.CENTER);

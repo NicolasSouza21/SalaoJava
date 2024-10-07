@@ -20,6 +20,7 @@ public class CaixaPanel extends JPanel {
     private JComboBox<Cliente> clienteComboBox;
     private List<Produto> carrinho;
     private JLabel totalLabel;
+    private JSpinner quantidadeSpinner; // Adicionado para selecionar a quantidade
 
     public CaixaPanel() {
         this.produtoService = new ProdutoService();
@@ -44,9 +45,17 @@ public class CaixaPanel extends JPanel {
         JPanel produtosPanel = new JPanel(new BorderLayout());
         produtosPanel.setBorder(BorderFactory.createTitledBorder("Produtos Disponíveis"));
         atualizarTabelaProdutos();
+
+        // Adicionando um painel para o spinner de quantidade
+        JPanel quantidadePanel = new JPanel();
+        quantidadeSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1)); // Spinner para selecionar a quantidade
+        quantidadePanel.add(new JLabel("Quantidade:"));
+        quantidadePanel.add(quantidadeSpinner);
+
         JButton addProdutoButton = new JButton("Adicionar ao Carrinho");
         addProdutoButton.addActionListener(e -> adicionarProdutoAoCarrinho());
         produtosPanel.add(new JScrollPane(produtosTable), BorderLayout.CENTER);
+        produtosPanel.add(quantidadePanel, BorderLayout.NORTH); // Adicionando o painel da quantidade
         produtosPanel.add(addProdutoButton, BorderLayout.SOUTH);
 
         // Tabela de produtos no carrinho
@@ -106,17 +115,24 @@ public class CaixaPanel extends JPanel {
         int selectedRow = produtosTable.getSelectedRow();
         if (selectedRow >= 0) {
             Produto produto = produtoService.buscarProduto((int) produtosTable.getValueAt(selectedRow, 0));
-            
+
+            // Obtendo a quantidade escolhida no spinner
+            int quantidadeComprada = (int) quantidadeSpinner.getValue();
+
             // Verifica se há estoque suficiente
-            int quantidadeComprada = 1; // Defina a quantidade a ser comprada
             if (produto.getQuantidade() < quantidadeComprada) {
                 JOptionPane.showMessageDialog(this, "Quantidade insuficiente em estoque.", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Atualiza a quantidade do produto
+            // Adiciona o produto ao carrinho a quantidade selecionada
+            for (int i = 0; i < quantidadeComprada; i++) {
+                carrinho.add(produto);
+            }
+
+            // Atualiza a quantidade do produto no estoque
             produto.setQuantidade(produto.getQuantidade() - quantidadeComprada);
-            carrinho.add(produto);
+            produtoService.editarProduto(produto); // Atualiza no banco
             atualizarTabelaCarrinho();
             atualizarTabelaProdutos(); // Atualiza a tabela de produtos para refletir a quantidade reduzida
         } else {
@@ -132,7 +148,7 @@ public class CaixaPanel extends JPanel {
             Produto produto = carrinho.get(i);
             data[i][0] = produto.getId();
             data[i][1] = produto.getNome();
-            data[i][2] = 1; // Definindo quantidade como 1, pois estamos adicionando um de cada vez
+            data[i][2] = 1; // A quantidade é sempre 1 pois estamos adicionando múltiplas vezes
             data[i][3] = produto.getPreco();
             total += produto.getPreco(); // Totaliza o preço do produto
         }
@@ -153,17 +169,21 @@ public class CaixaPanel extends JPanel {
         }
 
         String formaPagamento = JOptionPane.showInputDialog(this, "Informe a forma de pagamento:");
+
+        // Registra a venda no banco de dados
         boolean sucesso = vendaService.registrarVenda(cliente, carrinho, formaPagamento);
 
         if (sucesso) {
             JOptionPane.showMessageDialog(this, "Venda registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            // Resetar o carrinho e as tabelas após a venda
+
+            // Limpa o carrinho após o sucesso da venda
             carrinho.clear();
-            atualizarTabelaCarrinho();
-            atualizarTabelaProdutos(); // Atualiza a tabela de produtos para refletir o estoque atual
+
+            // Atualiza as tabelas e componentes da interface
+            atualizarTabelaCarrinho(); // Atualiza a tabela de carrinho para mostrar vazio
+            atualizarTabelaProdutos(); // Atualiza a tabela de produtos para refletir as novas quantidades
+            totalLabel.setText("Total: R$ 0.00"); // Reseta o total
             
-            // Resetar o cliente selecionado
-            clienteComboBox.setSelectedIndex(-1); // Desmarca o cliente selecionado
         } else {
             JOptionPane.showMessageDialog(this, "Erro ao registrar venda.", "Erro", JOptionPane.ERROR_MESSAGE);
         }

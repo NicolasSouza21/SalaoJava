@@ -5,11 +5,11 @@ import br.app.com.model.Produto;
 import br.app.com.model.Venda;
 import br.app.com.dao.VendaDAO;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class VendaService {
-    private VendaDAO vendaDAO = new VendaDAO();
+    private final VendaDAO vendaDAO = new VendaDAO();
 
     // Método para registrar venda
     public boolean registrarVenda(Cliente cliente, List<Produto> produtos, String formaPagamento) {
@@ -17,7 +17,7 @@ public class VendaService {
         double total = produtos.stream().mapToDouble(Produto::getPreco).sum();
 
         // Cria o objeto Venda, passando o clienteId em vez do objeto Cliente
-        Venda venda = new Venda(0, new Date(), total, formaPagamento, cliente.getId());
+        Venda venda = new Venda(0, LocalDate.now(), total, formaPagamento, cliente.getId()); // Usando LocalDate.now()
 
         // Registra a venda no banco de dados
         boolean sucesso = vendaDAO.cadastrarVenda(venda);
@@ -40,7 +40,22 @@ public class VendaService {
     }
 
     // Método para listar vendas do dia
-    public List<Venda> listarVendasDoDia(Date data) {
-        return vendaDAO.buscarVendasPorData(data);
+    public List<Venda> listarVendasDoDia(LocalDate data) { // Alterado para LocalDate
+        return vendaDAO.buscarVendasPorData(data); // Deve ser ajustado no DAO também
+    }
+
+    // Novo método para listar todas as vendas
+    public List<Venda> listarVendas() {
+        return vendaDAO.buscarTodasVendas(); // Utiliza o DAO para buscar todas as vendas
+    }
+
+    // Método para excluir uma venda
+    public boolean excluirVenda(int vendaId) {
+        return vendaDAO.excluirVenda(vendaId);
+    }
+
+    // Método para atualizar uma venda
+    public boolean atualizarVenda(Venda venda) {
+        return vendaDAO.atualizarVenda(venda);
     }
 }

@@ -4,8 +4,8 @@ import br.app.com.model.Venda;
 import br.app.com.database.DatabaseConnection;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class VendaDAO {
@@ -16,8 +16,8 @@ public class VendaDAO {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            // Utilizando o clienteId em vez de tentar acessar um método getCliente()
-            statement.setDate(1, new java.sql.Date(venda.getData().getTime()));
+            // Convertendo LocalDate para java.sql.Date
+            statement.setDate(1, java.sql.Date.valueOf(venda.getData()));
             statement.setDouble(2, venda.getTotal());
             statement.setString(3, venda.getFormaPagamento());
             statement.setInt(4, venda.getClienteId());  // Alterado para getClienteId()
@@ -25,38 +25,39 @@ public class VendaDAO {
             int rowsAffected = statement.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao cadastrar venda: " + e.getMessage());
+            System.err.println("Erro ao cadastrar venda: " + e.getMessage());
             return false;
         }
     }
 
     // Método para buscar vendas por data
-    public List<Venda> buscarVendasPorData(Date data) {
+    public List<Venda> buscarVendasPorData(LocalDate data) {
         List<Venda> vendas = new ArrayList<>();
         String sql = "SELECT * FROM vendas WHERE data = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setDate(1, new java.sql.Date(data.getTime()));
+    
+            // Convertendo LocalDate para java.sql.Date
+            statement.setDate(1, java.sql.Date.valueOf(data));
             ResultSet resultSet = statement.executeQuery();
-
+    
             while (resultSet.next()) {
                 // Criando um objeto Venda e preenchendo seus dados
                 Venda venda = new Venda();
                 venda.setId(resultSet.getInt("id"));
-                venda.setData(resultSet.getDate("data"));
+                venda.setData(resultSet.getDate("data").toLocalDate()); // Convertendo para LocalDate
                 venda.setTotal(resultSet.getDouble("total"));
                 venda.setFormaPagamento(resultSet.getString("forma_pagamento"));
                 venda.setClienteId(resultSet.getInt("cliente_id"));  // Armazenando o clienteId
-
+    
                 // Adiciona a venda na lista
                 vendas.add(venda);
             }
-
+    
         } catch (SQLException e) {
-            System.out.println("Erro ao buscar vendas: " + e.getMessage());
+            System.err.println("Erro ao buscar vendas: " + e.getMessage());
         }
-
+    
         return vendas;
     }
 
@@ -73,7 +74,67 @@ public class VendaDAO {
             int rowsAffected = statement.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao cadastrar item de venda: " + e.getMessage());
+            System.err.println("Erro ao cadastrar item de venda: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Novo método para buscar todas as vendas
+    public List<Venda> buscarTodasVendas() {
+        List<Venda> vendas = new ArrayList<>();
+        String sql = "SELECT * FROM vendas"; // Ajuste o nome da tabela conforme necessário
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                Venda venda = new Venda();
+                venda.setId(resultSet.getInt("id"));
+                venda.setData(resultSet.getDate("data").toLocalDate()); // Convertendo para LocalDate
+                venda.setTotal(resultSet.getDouble("total"));
+                venda.setFormaPagamento(resultSet.getString("forma_pagamento"));
+                venda.setClienteId(resultSet.getInt("cliente_id")); // Armazenando o clienteId
+
+                vendas.add(venda); // Adiciona a venda à lista
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao buscar todas as vendas: " + e.getMessage());
+        }
+
+        return vendas;
+    }
+
+    public boolean excluirVenda(int vendaId) {
+        String sql = "DELETE FROM vendas WHERE id = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, vendaId);
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Erro ao excluir venda: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Método para atualizar uma venda
+    public boolean atualizarVenda(Venda venda) {
+        String sql = "UPDATE vendas SET data = ?, total = ?, forma_pagamento = ? WHERE id = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            // Convertendo LocalDate para java.sql.Date
+            statement.setDate(1, java.sql.Date.valueOf(venda.getData()));
+            statement.setDouble(2, venda.getTotal());
+            statement.setString(3, venda.getFormaPagamento());
+            statement.setInt(4, venda.getId());
+
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Erro ao atualizar venda: " + e.getMessage());
             return false;
         }
     }

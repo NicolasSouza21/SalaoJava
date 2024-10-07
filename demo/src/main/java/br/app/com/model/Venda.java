@@ -1,10 +1,11 @@
 package br.app.com.model;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Venda {
     private int id;
-    private Date data;
+    private LocalDate data; // Usando LocalDate
     private double total;
     private String formaPagamento;
     private int clienteId; // Armazena o ID do cliente
@@ -12,7 +13,7 @@ public class Venda {
     // Construtores
     public Venda() {}
 
-    public Venda(int id, Date data, double total, String formaPagamento, int clienteId) {
+    public Venda(int id, LocalDate data, double total, String formaPagamento, int clienteId) {
         this.id = id;
         this.data = data;
         this.total = total;
@@ -29,11 +30,11 @@ public class Venda {
         this.id = id; 
     }
 
-    public Date getData() { 
+    public LocalDate getData() { 
         return data; 
     }
     
-    public void setData(Date data) { 
+    public void setData(LocalDate data) { 
         this.data = data; 
     }
 
@@ -54,22 +55,23 @@ public class Venda {
     }
 
     public int getClienteId() { 
-        return clienteId; // Usando o ID do cliente 
+        return clienteId; 
     }
     
     public void setClienteId(int clienteId) { 
         this.clienteId = clienteId; 
     }
 
-    // toString atualizado
+    // toString atualizado para LocalDate
     @Override
     public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return "Venda{" +
                 "id=" + id +
-                ", data=" + data +
+                ", data=" + data.format(formatter) + // Formata a data para String
                 ", total=" + total +
                 ", formaPagamento='" + formaPagamento + '\'' +
-                ", clienteId=" + clienteId + // Mostra o ID do cliente
+                ", clienteId=" + clienteId +
                 '}';
     }
 }
