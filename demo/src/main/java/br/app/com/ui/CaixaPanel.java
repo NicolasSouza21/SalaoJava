@@ -2,11 +2,13 @@ package br.app.com.ui;
 
 import br.app.com.model.Cliente;
 import br.app.com.model.Produto;
+import br.app.com.model.ProdutoCarrinho;
 import br.app.com.service.ClienteService;
 import br.app.com.service.ProdutoService;
 import br.app.com.service.VendaService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,7 @@ public class CaixaPanel extends JPanel {
     private JTable produtosTable;
     private JTable carrinhoTable;
     private JComboBox<Cliente> clienteComboBox;
-    private List<Produto> carrinho;
+    private List<ProdutoCarrinho> carrinho;
     private JLabel totalLabel;
     private JSpinner quantidadeSpinner;
 
@@ -41,8 +43,11 @@ public class CaixaPanel extends JPanel {
 
         JPanel produtosPanel = new JPanel(new BorderLayout());
         produtosPanel.setBorder(BorderFactory.createTitledBorder("Produtos Disponíveis"));
-        atualizarTabelaProdutos();
 
+        // Inicializa a tabela de produtos
+        produtosTable = new JTable();
+        produtosPanel.add(new JScrollPane(produtosTable), BorderLayout.CENTER); // Adiciona a tabela ao painel
+        
         JPanel quantidadePanel = new JPanel();
         quantidadeSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
         quantidadePanel.add(new JLabel("Quantidade:"));
@@ -50,22 +55,24 @@ public class CaixaPanel extends JPanel {
 
         JButton addProdutoButton = new JButton("Adicionar ao Carrinho");
         addProdutoButton.addActionListener(e -> adicionarProdutoAoCarrinho());
-        produtosPanel.add(new JScrollPane(produtosTable), BorderLayout.CENTER);
         produtosPanel.add(quantidadePanel, BorderLayout.NORTH);
         produtosPanel.add(addProdutoButton, BorderLayout.SOUTH);
 
         JPanel carrinhoPanel = new JPanel(new BorderLayout());
         carrinhoPanel.setBorder(BorderFactory.createTitledBorder("Carrinho de Compras"));
+
+        // Inicializa a tabela de carrinho
         carrinhoTable = new JTable();
+        carrinhoPanel.add(new JScrollPane(carrinhoTable), BorderLayout.CENTER); // Adiciona a tabela ao painel
+
+        // Inicializando totalLabel antes de adicionar ao painel
         totalLabel = new JLabel("Total: R$ 0.00");
 
-        // Botão de remover item do carrinho
         JButton removerProdutoButton = new JButton("Remover do Carrinho");
         removerProdutoButton.addActionListener(e -> removerProdutoDoCarrinho());
-        
-        carrinhoPanel.add(new JScrollPane(carrinhoTable), BorderLayout.CENTER);
-        carrinhoPanel.add(totalLabel, BorderLayout.SOUTH);
-        carrinhoPanel.add(removerProdutoButton, BorderLayout.NORTH);  // Adiciona o botão de remoção no carrinho
+
+        carrinhoPanel.add(totalLabel, BorderLayout.SOUTH);  // Adicionando o totalLabel corretamente ao painel
+        carrinhoPanel.add(removerProdutoButton, BorderLayout.NORTH);
 
         JButton finalizarCompraButton = new JButton("Finalizar Compra");
         finalizarCompraButton.addActionListener(e -> finalizarCompra());
@@ -81,6 +88,9 @@ public class CaixaPanel extends JPanel {
         add(produtosPanel, BorderLayout.WEST);
         add(carrinhoPanel, BorderLayout.EAST);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // Atualiza a tabela de produtos na inicialização
+        atualizarTabelaProdutos();
     }
 
     private void carregarClientes() {
@@ -101,42 +111,64 @@ public class CaixaPanel extends JPanel {
             data[i][2] = produto.getQuantidade();
             data[i][3] = produto.getPreco();
         }
-        produtosTable = new JTable(data, new String[]{"ID", "Nome", "Quantidade", "Preço"});
+
+        produtosTable.setModel(new DefaultTableModel(data, new String[]{"ID", "Nome", "Quantidade", "Preço"}));
         produtosTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     private void adicionarProdutoAoCarrinho() {
         int selectedRow = produtosTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            Produto produto = produtoService.buscarProduto((int) produtosTable.getValueAt(selectedRow, 0));
-            int quantidadeComprada = (int) quantidadeSpinner.getValue();
 
-            if (produto.getQuantidade() < quantidadeComprada) {
-                JOptionPane.showMessageDialog(this, "Quantidade insuficiente em estoque.", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            for (int i = 0; i < quantidadeComprada; i++) {
-                carrinho.add(produto);
-            }
-
-            produto.setQuantidade(produto.getQuantidade() - quantidadeComprada);
-            produtoService.editarProduto(produto);
-            atualizarTabelaCarrinho();
-            atualizarTabelaProdutos();
-        } else {
-            JOptionPane.showMessageDialog(this, "Selecione um produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Nenhuma linha selecionada. Por favor, selecione um produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        int produtoId = (int) produtosTable.getValueAt(selectedRow, 0);
+        Produto produto = produtoService.buscarProduto(produtoId);
+
+        if (produto == null) {
+            JOptionPane.showMessageDialog(this, "Produto não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int quantidadeComprada = (int) quantidadeSpinner.getValue();
+
+        if (produto.getQuantidade() < quantidadeComprada) {
+            JOptionPane.showMessageDialog(this, "Quantidade insuficiente em estoque.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        ProdutoCarrinho itemExistente = null;
+        for (ProdutoCarrinho item : carrinho) {
+            if (item.getProduto().getId() == produto.getId()) {
+                itemExistente = item;
+                break;
+            }
+        }
+
+        if (itemExistente != null) {
+            itemExistente.setQuantidade(itemExistente.getQuantidade() + quantidadeComprada);
+        } else {
+            carrinho.add(new ProdutoCarrinho(produto, quantidadeComprada));
+        }
+
+        produto.setQuantidade(produto.getQuantidade() - quantidadeComprada);
+        produtoService.editarProduto(produto);
+
+        atualizarTabelaCarrinho();
+        atualizarTabelaProdutos();
+        produtosTable.clearSelection();
+        quantidadeSpinner.setValue(1);
     }
 
-    // Novo método para remover produto do carrinho
     private void removerProdutoDoCarrinho() {
         int selectedRow = carrinhoTable.getSelectedRow();
         if (selectedRow >= 0) {
-            Produto produtoRemovido = carrinho.get(selectedRow);
+            ProdutoCarrinho produtoRemovido = carrinho.get(selectedRow);
             carrinho.remove(selectedRow);
-            produtoRemovido.setQuantidade(produtoRemovido.getQuantidade() + 1);  // Devolvendo o produto ao estoque
-            produtoService.editarProduto(produtoRemovido);
+            produtoRemovido.getProduto().setQuantidade(produtoRemovido.getProduto().getQuantidade() + produtoRemovido.getQuantidade());
+            produtoService.editarProduto(produtoRemovido.getProduto());
             atualizarTabelaCarrinho();
             atualizarTabelaProdutos();
         } else {
@@ -148,14 +180,14 @@ public class CaixaPanel extends JPanel {
         Object[][] data = new Object[carrinho.size()][4];
         double total = 0.0;
         for (int i = 0; i < carrinho.size(); i++) {
-            Produto produto = carrinho.get(i);
-            data[i][0] = produto.getId();
-            data[i][1] = produto.getNome();
-            data[i][2] = 1;
-            data[i][3] = produto.getPreco();
-            total += produto.getPreco();
+            ProdutoCarrinho item = carrinho.get(i);
+            data[i][0] = item.getProduto().getId();
+            data[i][1] = item.getProduto().getNome();
+            data[i][2] = item.getQuantidade();
+            data[i][3] = item.getPrecoTotal();
+            total += item.getPrecoTotal();
         }
-        carrinhoTable.setModel(new javax.swing.table.DefaultTableModel(data, new String[]{"ID", "Nome", "Quantidade", "Preço"}));
+        carrinhoTable.setModel(new DefaultTableModel(data, new String[]{"ID", "Nome", "Quantidade", "Preço Total"}));
         totalLabel.setText("Total: R$ " + String.format("%.2f", total));
     }
 
@@ -186,6 +218,7 @@ public class CaixaPanel extends JPanel {
     }
 
     public void atualizarInformacoes() {
+        carrinhoTable.clearSelection();
         carregarClientes();
         atualizarTabelaProdutos();
         atualizarTabelaCarrinho();

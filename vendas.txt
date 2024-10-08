@@ -16,3 +16,5 @@ ID | Data | Total | Forma de Pagamento | ID Cliente
 18 | 07/10/2024 | R$ 80,00 | Credito | 3
 17 | 07/10/2024 | R$ 100,00 | Debito | 3
 3 | 04/10/2024 | R$ 100,00 | Pix | 3
+19 | 08/10/2024 | R$ 100,00 | Credito | 3
+22 | 08/10/2024 | R$ 140,00 | Pix | 3
