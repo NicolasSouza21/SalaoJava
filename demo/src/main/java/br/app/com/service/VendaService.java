@@ -16,13 +16,13 @@ public class VendaService {
         // Calcula o total da venda com base nos produtos
         double total = produtos.stream().mapToDouble(Produto::getPreco).sum();
 
-        // Cria o objeto Venda, passando o clienteId em vez do objeto Cliente
-        Venda venda = new Venda(0, LocalDate.now(), total, formaPagamento, cliente.getId()); // Usando LocalDate.now()
+        // Cria o objeto Venda com LocalDate.now() para a data
+        Venda venda = new Venda(0, LocalDate.now(), total, formaPagamento, cliente.getId());
 
         // Registra a venda no banco de dados
         boolean sucesso = vendaDAO.cadastrarVenda(venda);
 
-        // Aqui você pode adicionar lógica para registrar os produtos da venda, se necessário
+        // Se a venda foi registrada com sucesso, registra os itens da venda
         if (sucesso) {
             registrarItensVenda(venda.getId(), produtos);
         }
@@ -33,20 +33,19 @@ public class VendaService {
     // Método para registrar os itens da venda
     private void registrarItensVenda(int vendaId, List<Produto> produtos) {
         for (Produto produto : produtos) {
-            // Aqui você deve implementar a lógica para registrar os produtos na venda
-            // Por exemplo, pode haver um método na vendaDAO para inserir os itens
+            // Registra cada item da venda chamando o DAO
             vendaDAO.cadastrarItemVenda(vendaId, produto.getId(), produto.getQuantidade());
         }
     }
 
-    // Método para listar vendas do dia
-    public List<Venda> listarVendasDoDia(LocalDate data) { // Alterado para LocalDate
-        return vendaDAO.buscarVendasPorData(data); // Deve ser ajustado no DAO também
+    // Método para listar vendas do dia com LocalDate como parâmetro
+    public List<Venda> listarVendasDoDia(LocalDate data) {
+        return vendaDAO.buscarVendasPorData(data); // Certifique-se de que o DAO também está usando LocalDate
     }
 
-    // Novo método para listar todas as vendas
+    // Método para listar todas as vendas
     public List<Venda> listarVendas() {
-        return vendaDAO.buscarTodasVendas(); // Utiliza o DAO para buscar todas as vendas
+        return vendaDAO.buscarTodasVendas();
     }
 
     // Método para excluir uma venda

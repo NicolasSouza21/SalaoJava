@@ -14,15 +14,24 @@ public class VendaDAO {
     public boolean cadastrarVenda(Venda venda) {
         String sql = "INSERT INTO vendas (data, total, forma_pagamento, cliente_id) VALUES (?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             // Convertendo LocalDate para java.sql.Date
             statement.setDate(1, java.sql.Date.valueOf(venda.getData()));
             statement.setDouble(2, venda.getTotal());
             statement.setString(3, venda.getFormaPagamento());
-            statement.setInt(4, venda.getClienteId());  // Alterado para getClienteId()
+            statement.setInt(4, venda.getClienteId());
 
             int rowsAffected = statement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                // Obter o ID gerado da venda e setar na venda
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        venda.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Erro ao cadastrar venda: " + e.getMessage());
@@ -36,28 +45,27 @@ public class VendaDAO {
         String sql = "SELECT * FROM vendas WHERE data = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-    
+
             // Convertendo LocalDate para java.sql.Date
             statement.setDate(1, java.sql.Date.valueOf(data));
             ResultSet resultSet = statement.executeQuery();
-    
+
             while (resultSet.next()) {
-                // Criando um objeto Venda e preenchendo seus dados
                 Venda venda = new Venda();
                 venda.setId(resultSet.getInt("id"));
                 venda.setData(resultSet.getDate("data").toLocalDate()); // Convertendo para LocalDate
                 venda.setTotal(resultSet.getDouble("total"));
                 venda.setFormaPagamento(resultSet.getString("forma_pagamento"));
-                venda.setClienteId(resultSet.getInt("cliente_id"));  // Armazenando o clienteId
-    
+                venda.setClienteId(resultSet.getInt("cliente_id")); // Armazenando o clienteId
+
                 // Adiciona a venda na lista
                 vendas.add(venda);
             }
-    
+
         } catch (SQLException e) {
-            System.err.println("Erro ao buscar vendas: " + e.getMessage());
+            System.err.println("Erro ao buscar vendas por data: " + e.getMessage());
         }
-    
+
         return vendas;
     }
 
@@ -79,7 +87,7 @@ public class VendaDAO {
         }
     }
 
-    // Novo método para buscar todas as vendas
+    // Método para buscar todas as vendas
     public List<Venda> buscarTodasVendas() {
         List<Venda> vendas = new ArrayList<>();
         String sql = "SELECT * FROM vendas"; // Ajuste o nome da tabela conforme necessário
